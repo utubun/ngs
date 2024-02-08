@@ -1,4 +1,4 @@
-package gunzip
+package validator
 
 import (
 	"errors"
