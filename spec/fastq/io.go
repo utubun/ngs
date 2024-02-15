@@ -31,34 +31,41 @@ func ReadGz(buf io.Reader) (*bufio.Scanner, error) {
 	return s, nil
 }
 
-func Counter2(s *bufio.Scanner) int {
+func Read(r io.Reader) (Reads, error) {
 	var (
-		n int
-		c int
+		reads Reads
 	)
 
-	for s.Scan() {
+	reader, err := gzip.NewReader(r)
+	if err != nil {
+		return reads, err
+	}
+	defer reader.Close()
 
-		/*switch n {
-		case 0:
-			//reads.Header = append(reads.Header, scanner.Text())
-			fmt.Println("Foun")
-		case 1:
-			reads.Sequence = append(reads.Sequence, scanner.Text())
-		case 2:
-			n++
+	scanner := bufio.NewScanner(reader)
+	var previous int
+
+	for scanner.Scan() {
+
+		s := scanner.Text()
+
+		switch s[0] {
+		case '@':
+			previous = 1
 			continue
-		case 3:
-			qScores := convertQualities(scanner.Text())
-			reads.QScores = append(reads.QScores, qScores)
+		case '+':
+			previous = 2
+			continue
+			//reads.Sequence = append(reads.Sequence, scanner.Text())
 		default:
-			log.Fatal("Unexpected line")
-		}*/
-
-		n = (n + 1) % 4
-		c++
-
+			switch previous {
+			case 1:
+				reads.Sequence = append(reads.Sequence, s)
+			case 2:
+				reads.QScores = append(reads.QScores, convertQualities(s))
+			}
+		}
 	}
 
-	return c
+	return reads, nil
 }

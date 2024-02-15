@@ -51,13 +51,25 @@ func ParseHeader(h string) Header {
 
 type DNA string
 
-func (dna *DNA) BaseFrequency() map[rune]int {
+func BaseFrequency(dna string) map[rune]int {
 	frequency := make(map[rune]int)
 
-	for _, base := range *dna {
+	for _, base := range dna {
 		frequency[base]++
 	}
 
+	return frequency
+}
+
+func (r *Reads) BaseFrequency() map[rune]int {
+	frequency := make(map[rune]int)
+
+	for _, dna := range r.Sequence {
+		freq := BaseFrequency(dna)
+		for key, value := range freq {
+			frequency[key] += value
+		}
+	}
 	return frequency
 }
 

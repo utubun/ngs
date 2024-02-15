@@ -53,7 +53,7 @@ var rootCmd = &cobra.Command{
 
 			fmt.Println("Reading fastq file")
 			start = time.Now()
-			res, _ := fastq.ReadFastq2(&r)
+			res, _ := fastq.Read(r)
 			t = time.Now()
 			elapsed = t.Sub(start)
 			fmt.Printf("First read: \n%#v\nQuality scores:%#v\nDone in %+v\n", res.Sequence[11], res.QScores[11], elapsed)

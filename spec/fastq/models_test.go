@@ -96,7 +96,7 @@ func TestCounter(t *testing.T) {
 func TestBaseFrequency(t *testing.T) {
 	tests := []struct {
 		name  string
-		input DNA
+		input string
 		want  map[rune]int
 	}{
 		{
@@ -119,7 +119,7 @@ func TestBaseFrequency(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dna := tt.input
-			res := dna.BaseFrequency()
+			res := BaseFrequency(dna)
 			if res[65] != tt.want[65] {
 				t.Fatalf("wrong count for A: expect %d, got %d", tt.want[65], res[65])
 			}

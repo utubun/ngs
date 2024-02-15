@@ -2,48 +2,7 @@ package fastq
 
 import (
 	"bufio"
-	"compress/gzip"
-	"io"
 )
-
-func ReadFastq2(r *io.Reader) (Reads, error) {
-	var (
-		reads Reads
-	)
-
-	reader, err := gzip.NewReader(*r)
-	if err != nil {
-		return reads, err
-	}
-	defer reader.Close()
-
-	scanner := bufio.NewScanner(reader)
-	var previous int
-
-	for scanner.Scan() {
-
-		s := scanner.Text()
-
-		switch s[0] {
-		case '@':
-			previous = 1
-			continue
-		case '+':
-			previous = 2
-			continue
-			//reads.Sequence = append(reads.Sequence, scanner.Text())
-		default:
-			switch previous {
-			case 1:
-				reads.Sequence = append(reads.Sequence, s)
-			case 2:
-				reads.QScores = append(reads.QScores, convertQualities(s))
-			}
-		}
-	}
-
-	return reads, nil
-}
 
 func Scan(s *bufio.Scanner, seq chan string, qual chan string) {
 	if ok := s.Scan(); ok {
