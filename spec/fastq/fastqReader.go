@@ -3,47 +3,56 @@ package fastq
 import (
 	"bufio"
 	"compress/gzip"
-	"fmt"
 	"io"
-	"log"
 )
 
-func ReadFastq2(b *io.ReadCloser) (Reads, error) {
+func ReadFastq2(r *io.Reader) (Reads, error) {
 	var (
 		reads Reads
-		n     int
 	)
 
-	r, err := gzip.NewReader(*b)
+	reader, err := gzip.NewReader(*r)
 	if err != nil {
 		return reads, err
 	}
-	defer r.Close()
+	defer reader.Close()
 
-	scanner := bufio.NewScanner(r)
+	scanner := bufio.NewScanner(reader)
+	var previous int
 
 	for scanner.Scan() {
 
-		switch n {
-		case 0:
-			reads.Header = append(reads.Header, scanner.Text())
-		case 1:
-			reads.Sequence = append(reads.Sequence, scanner.Text())
-		case 2:
-			n++
+		s := scanner.Text()
+
+		switch s[0] {
+		case '@':
+			previous = 1
 			continue
-		case 3:
-			qScores := convertQualities(scanner.Text())
-			reads.QScores = append(reads.QScores, qScores)
+		case '+':
+			previous = 2
+			continue
+			//reads.Sequence = append(reads.Sequence, scanner.Text())
 		default:
-			log.Fatal("Unexpected line")
+			switch previous {
+			case 1:
+				reads.Sequence = append(reads.Sequence, s)
+			case 2:
+				reads.QScores = append(reads.QScores, convertQualities(s))
+			}
 		}
-
-		n = (n + 1) % 4
-
 	}
 
 	return reads, nil
+}
+
+func Scan(s *bufio.Scanner, seq chan string, qual chan string) {
+	if ok := s.Scan(); ok {
+		str := s.Text()
+		switch str[0] {
+		case '@':
+			s.Scan()
+		}
+	}
 }
 
 func (r Reads) CheckQuality() (FastqQuality, error) {
@@ -52,24 +61,22 @@ func (r Reads) CheckQuality() (FastqQuality, error) {
 		maxLen int
 	)
 
-	for i, val := range r.Sequence {
+	/*for _, val := range r.Sequence {
 		if !isDNA(&val) {
 			qcheck.Valid = false
-			qcheck.Message = append(qcheck.Message, fmt.Sprintf("%s is not DNA", r.Header[i]))
 			break
 		}
-	}
+	}*/
 
-	for i, val := range r.QScores {
-		if !qcheck.Valid {
+	for _, val := range r.QScores {
+		/*if !qcheck.Valid {
 			break
-		}
+		}*/
 		for _, el := range val {
 			if el > 40 || el < 0 {
 				qcheck.Valid = false
-				qcheck.Message = append(qcheck.Message, fmt.Sprintf("%s invalid quality score %d", r.Header[i], el))
+				break
 			}
-			break
 		}
 	}
 
@@ -80,7 +87,7 @@ func (r Reads) CheckQuality() (FastqQuality, error) {
 			maxLen = i
 		}
 
-		qcheck.SeqLength[i]++
+		//qcheck.SeqLength[i]++
 	}
 
 	// transpose qualities

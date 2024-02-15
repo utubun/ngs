@@ -43,7 +43,8 @@ func ReadFastq() FastqQuality {
 
 		switch n {
 		case 0:
-			reads.Header = append(reads.Header, scanner.Text())
+			header := ParseHeader(scanner.Text())
+			reads.Header = append(reads.Header, header)
 		case 1:
 			reads.Sequence = append(reads.Sequence, scanner.Text())
 		case 2:

@@ -6,7 +6,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ var rootCmd = &cobra.Command{
 			}
 			fmt.Printf("Time elapsed: %+v\n", elapsed)
 
-			fmt.Println("Extracting archive")
+			/*fmt.Println("Extracting archive")
 			start = time.Now()
 			gz, err := fastq.ReadGz(r)
 			t = time.Now()
@@ -50,35 +49,20 @@ var rootCmd = &cobra.Command{
 				fmt.Printf("Unable to read archive: %s", err)
 				return
 			}
-			fmt.Printf("Read gz archive in %+v\n", elapsed)
+			fmt.Printf("Read gz archive in %+v\n", elapsed)*/
 
-			fmt.Println("Counting the reads")
+			fmt.Println("Reading fastq file")
 			start = time.Now()
-
-			var n int
-			var wg sync.WaitGroup
-			var counter fastq.Counter
-			for gz.Scan() {
-				if n == 1 {
-					wg.Add(1)
-					var dna fastq.DNA
-					dna = fastq.DNA(gz.Text())
-					go func() {
-						defer wg.Done()
-						dna.Composition(&counter)
-					}()
-
-					wg.Wait()
-
-				}
-
-				n = (n + 1) % 4
-			}
+			res, _ := fastq.ReadFastq2(&r)
 			t = time.Now()
 			elapsed = t.Sub(start)
-			fmt.Printf("Counted %d reads, in %+v\n", cnt, elapsed)
-		} else {
-			fmt.Println("Path not found")
+			fmt.Printf("First read: \n%#v\nQuality scores:%#v\nDone in %+v\n", res.Sequence[11], res.QScores[11], elapsed)
+
+			start = time.Now()
+			count := len(res.Sequence)
+			t = time.Now()
+			elapsed = t.Sub(start)
+			fmt.Printf("Quality control count: %#v\nDone in %+v\n", count, elapsed)
 		}
 	},
 }
