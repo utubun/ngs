@@ -126,7 +126,7 @@ func (q *QC) QualityPerPosition() []Point {
 		}
 		p := &Point{
 			X: int64(key),
-			Y: int64(internal.Mean(y)),
+			Y: int64(internalMean(y)),
 		}
 	}
 }
