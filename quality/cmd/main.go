@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/utubun/ngs/fastq"
+	"github.com/utubun/ngs/quality/internal/util"
 )
 
 func main() {
@@ -34,6 +35,8 @@ func main() {
 	}
 	gc := q.GC()
 	fmt.Println(gc)
+	qpos := q.QualityPerPosition()
+	fmt.Println(qpos)
 }
 
 type base struct {
@@ -117,16 +120,18 @@ func (q *QC) GC() map[string]float64 {
 	return m
 }
 
-func (q *QC) QualityPerPosition() []Point {
+func (q *QC) QualityPerPosition() *[]Point {
 	var res []Point
 	for key, val := range q.Position {
 		var y []int
-		for k, p := range val {
+		for _, p := range val {
 			y = append(y, p.Quality.Val)
 		}
 		p := &Point{
 			X: int64(key),
-			Y: int64(internalMean(y)),
+			Y: int64(util.Mean(y)),
 		}
+		res = append(res, *p)
 	}
+	return &res
 }
