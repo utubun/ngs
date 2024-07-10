@@ -7,6 +7,12 @@ import (
 	"github.com/utubun/ngs/fastq/internal"
 )
 
+type Read interface {
+	Len() float64
+	Quality() []float64
+	Sequence() []rune
+}
+
 type Record struct {
 	B []byte
 }

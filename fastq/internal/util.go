@@ -13,7 +13,7 @@ func isDNA(x string) bool {
 }
 
 func isUtilString(x string) bool {
-	return regexp.MustCompile(`^\+?[A-Za-z0-9:=._ ]*$`).MatchString(x)
+	return regexp.MustCompile(`^\+[A-Za-z0-9:_ .=]+$`).MatchString(x)
 }
 
 func isQualityString(x string) bool {

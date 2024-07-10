@@ -16,8 +16,6 @@ func NewReader(r io.Reader) (*Reader, error) {
 }
 
 func (r *Reader) Read(b []byte) (int, error) {
-	// record identifier
-	var p string
 	// n holds number of bytes written
 	var n int
 	// address of the sbstring
@@ -30,43 +28,33 @@ func (r *Reader) Read(b []byte) (int, error) {
 		if !ok {
 			return 0, io.EOF
 		}
-		text := r.scanner.Text()
-		kind := IdentifyReadLine(text)
-		switch kind {
-		case "header":
-			if p != "" {
+		read := r.scanner.Bytes()
+		text := string(read)
+		switch i {
+		case 0:
+			if !isHeader(text) {
 				return 0, fmt.Errorf("invalid format: expected header record, but found %s", text)
 			}
-			header := r.scanner.Bytes()
-			address = int8(len(temp) + len(header))
+			address = int8(len(temp) + len(read))
 			temp[1] = byte(address)
-			temp = append(temp, r.scanner.Bytes()...)
-			p = "header"
+			temp = append(temp, read...)
 			continue
-		case "dna":
-			if p != "header" {
+		case 1:
+			if !isDNA(text) {
 				return 0, fmt.Errorf("invalid format: expected dna record, but found %s", text)
 			}
-			p = "dna"
-			dna := r.scanner.Bytes()
-			address = int8(int(temp[1]) + len(dna))
+			address = int8(int(temp[1]) + len(read))
 			temp[2] = byte(address)
-			temp = append(temp, dna...)
+			temp = append(temp, read...)
 			continue
-		case "util":
-			if p != "dna" {
-				return 0, fmt.Errorf("invalid format: expected utility record, but found %s", text)
-			}
-			p = "util"
-			continue
-		case "quality":
-			if p != "util" {
+		case 3:
+			if !isQualityString(text) {
 				return 0, fmt.Errorf("invalid format: expected quality record, but found %s", text)
 			}
 			temp[0] = byte(1)
-			temp = append(temp, r.scanner.Bytes()...)
+			temp = append(temp, read...)
 		default:
-			return 0, fmt.Errorf("invalid format: unknown record type %s", text)
+			continue
 		}
 	}
 	n += copy(b, temp)
