@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"os"
+	"math/rand"
+	"time"
 
-	"github.com/utubun/ngs/fastq"
+	"github.com/utubun/ngs/quality/internal/core"
+)
+
+const (
+	_ = 16 << iota
+	BASE32
+	BASE64
 )
 
 func main() {
-	f, err := os.Open("../quality/internal/assets/short.fastq")
+	/* f, err := os.Open("../quality/internal/assets/tiny.fastq")
 
 	if err != nil {
 		log.Printf("Error opening th efile: %s", err)
@@ -21,7 +26,9 @@ func main() {
 		log.Fatal(err)
 	}
 	b := make([]byte, 1024)
-	q := NeqQC()
+	q := quality.NewQC()
+
+	var id int
 	for {
 		_, err := r.Read(b)
 		if err == io.EOF {
@@ -30,103 +37,52 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		q.Check(b)
+		q, err = core.ProcessSequence(b, id, q)
+		if err != nil {
+			log.Fatal(err)
+		}
+		id += 1
 	}
-	gc := q.GC()
+
+	//fmt.Printf("%#v\n", q)
+
+	pq := core.QualityPerPosition(q)
+	//fmt.Printf("%+v\n", pq)
+	/*gc := q.GC()
 	fmt.Println(gc)
-}
 
-type base struct {
-	Val   string
-	Count int
-}
+	js, _ := json.Marshal(pq)
+	os.WriteFile("qualpp.json", js, os.ModePerm)
 
-type quality struct {
-	Val   int
-	Count int
-}
+	pp := core.PerSeqQuality(q)
+	js, _ = json.Marshal(pp)
+	os.WriteFile("qualps.json", js, os.ModePerm)
 
-type position struct {
-	Base    base
-	Quality quality
-}
+	//ld := core.SeqLenDistribution(q)
+	//fmt.Printf("Seq Length Distribution: %v", ld)
 
-type Point struct {
-	X     int64
-	Y     int64
-	Label string
-	Props map[string]interface{}
-}
+	gc := core.PerSeqGC(q)
+	//fmt.Printf("GC content per sequence: %v\n", gc)
+	js, _ = json.Marshal(gc)
+	os.WriteFile("gc.json", js, os.ModePerm)
 
-type QC struct {
-	Count    int
-	Len      []int
-	Base     map[string]base
-	Qual     map[int]quality
-	Position map[int][]position
-}
+	fmt.Printf("BASE32 is: %d. BASE64 is %d", BASE32, BASE64) */
+	report := core.Report{}
+	dat := make([]core.Seq, 109)
 
-func NeqQC() *QC {
-	return &QC{
-		Position: make(map[int][]position),
-		Base:     make(map[string]base),
-		Qual:     make(map[int]quality),
-	}
-}
-
-func (q *QC) Check(b []byte) {
-	if int(b[0]) == 1 {
-		q.Count += 1
-	} else {
-		return
-	}
-	dna := b[b[1]:b[2]]
-	qual := b[b[2]:]
-	q.Len = append(q.Len, len(dna))
-	for i, v := range dna {
-		nt := string(v)
-		qv := int(qual[i])
-		if entry, ok := q.Base[nt]; ok {
-			entry.Count += 1
-			q.Base[nt] = entry
-		} else {
-			entry = base{nt, 1}
-			q.Base[nt] = entry
-		}
-		if entry, ok := q.Qual[qv]; ok {
-			entry.Count += 1
-			q.Qual[qv] = entry
-		} else {
-			entry = quality{qv, 1}
-			q.Qual[qv] = entry
-		}
-
-		q.Position[i] = append(q.Position[i], position{q.Base[nt], q.Qual[qv]})
-	}
-}
-
-func (q *QC) GC() map[string]float64 {
-	m := make(map[string]float64)
-	var total float64
-	for _, val := range q.Base {
-		total += float64(val.Count)
-	}
-	for key, val := range q.Base {
-		m[key] = float64(val.Count) / total * 100
-	}
-	return m
-}
-
-func (q *QC) QualityPerPosition() []Point {
-	var res []Point
-	for key, val := range q.Position {
-		var y []int
-		for k, p := range val {
-			y = append(y, p.Quality.Val)
-		}
-		p := &Point{
-			X: int64(key),
-			Y: int64(internal.Mean(y)),
+	for i := 0; i < 109; i++ {
+		l := rand.Intn(109)
+		for j := 0; j < l; j++ {
+			dat[i] = append(dat[i], &core.Base{})
 		}
 	}
+	report.Make(dat)
+
+	s := "ACCGTCGTTTCGAAAAAAAAANA"
+	count := core.Count(s)
+	for key, val := range count {
+		fmt.Println(string(key), ": ", val)
+	}
+	time.Sleep(5 * time.Second)
+	fmt.Printf("Summary:\n%+v\n", report)
 }

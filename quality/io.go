@@ -1,5 +1,6 @@
 package quality
 
+/*
 import (
 	"bufio"
 	"compress/gzip"
@@ -69,3 +70,4 @@ func Read(r io.Reader) (Reads, error) {
 
 	return reads, nil
 }
+*/

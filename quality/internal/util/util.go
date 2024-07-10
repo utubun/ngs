@@ -37,8 +37,8 @@ func IdentifyReadLine(x string) string {
 	return "unknown"
 }
 
-func Sum(x []int) int {
-	var sum int
+func Sum[T int | int32 | int64 | float32 | float64](x []T) T {
+	var sum T
 	for _, val := range x {
 		sum += val
 	}
@@ -46,13 +46,13 @@ func Sum(x []int) int {
 	return sum
 }
 
-func Mean(x []int) float64 {
+func Mean[T int | int32 | int64 | float32 | float64](x []T) float64 {
 	sum := Sum(x)
-	avr := float64(sum / len(x))
+	avr := float64(sum) / float64(len(x))
 	return avr
 }
 
-func Deviation(x []int) float64 {
+func Deviation[T int | int32 | int64 | float32 | float64](x []T) float64 {
 	var deviation float64
 	mean := Mean(x)
 	for _, val := range x {
@@ -61,12 +61,12 @@ func Deviation(x []int) float64 {
 	return deviation
 }
 
-func SD(x []int) float64 {
+func SD[T int | int32 | int64 | float32 | float64](x []T) float64 {
 	dev := math.Sqrt(Deviation(x) / float64(len(x)))
 	return dev
 }
 
-func Max(x []int) float64 {
+func Max[T int | int32 | int64 | float32 | float64](x []T) float64 {
 	var max float64
 	for _, val := range x {
 		max = math.Max(max, float64(val))
@@ -74,7 +74,7 @@ func Max(x []int) float64 {
 	return max
 }
 
-func Min(x []int) float64 {
+func Min[T int | int32 | int64 | float32 | float64](x []T) float64 {
 	var min float64
 	for _, val := range x {
 		min = math.Min(min, float64(val))
