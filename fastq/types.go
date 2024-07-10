@@ -1,4 +1,4 @@
-package internal
+package fastq
 
 type base struct {
 	val  *rune

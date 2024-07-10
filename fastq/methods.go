@@ -1,4 +1,4 @@
-package internal
+package fastq
 
 func newBase(v *rune, q *int) *base {
 	return &base{
