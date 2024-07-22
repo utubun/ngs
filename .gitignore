@@ -1,1 +1,3 @@
 ./quality/internal/assets/*
+quality/cmd/
+fastq/cmd/

@@ -1,10 +1,10 @@
 package fastq
 
-type base struct {
+type Base struct {
 	val  *rune
 	qual *int
 }
 
-type read struct {
-	pos []*base
+type Read struct {
+	pos []*Base
 }

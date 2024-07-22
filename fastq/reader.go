@@ -9,23 +9,23 @@ import (
 
 // alphabet ACGNT 65 67 71 78 84
 
-type reader struct {
+type Reader struct {
 	alphabet [5]rune
 	quality  [65]int
 	scanner  *bufio.Scanner
 }
 
-func newReader(r io.Reader) *reader {
+func NewReader(r io.Reader) *Reader {
 	alphabet := [5]rune{65, 67, 71, 78, 84}
 	var quality [65]int
 	for i := range quality {
 		quality[i] = i
 	}
 	scanner := bufio.NewScanner(r)
-	return &reader{alphabet: alphabet, quality: quality, scanner: scanner}
+	return &Reader{alphabet: alphabet, quality: quality, scanner: scanner}
 }
 
-func (r *reader) getRecord(qbase int, ch chan *read, wg *sync.WaitGroup) error {
+func (r *Reader) getRecord(qbase int, ch chan *Read, wg *sync.WaitGroup) error {
 	// define dna sequence
 	var seq string
 	// define quality sequence
@@ -67,7 +67,7 @@ func (r *reader) getRecord(qbase int, ch chan *read, wg *sync.WaitGroup) error {
 		// define result
 		res := newRead()
 		for i, val := range seq {
-			base := &base{}
+			base := &Base{}
 			switch val {
 			case 65:
 				base.val = &r.alphabet[0]
@@ -88,11 +88,11 @@ func (r *reader) getRecord(qbase int, ch chan *read, wg *sync.WaitGroup) error {
 	return nil
 }
 
-func (r *reader) Read() (chan *read, error) {
+func (r *Reader) Read() (chan *Read, error) {
 	//
 	var wg sync.WaitGroup
 	// define output chanel
-	ch := make(chan *read)
+	ch := make(chan *Read)
 	// iterate over input and write data to the channel
 	for {
 		wg.Add(1)

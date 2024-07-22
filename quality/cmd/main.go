@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
+	"log"
+	"os"
 	"time"
 
-	"github.com/utubun/ngs/quality/internal/core"
+	"github.com/utubun/ngs/fastq"
+	"github.com/utubun/ngs/quality"
 )
 
 const (
@@ -15,74 +17,54 @@ const (
 )
 
 func main() {
-	/* f, err := os.Open("../quality/internal/assets/tiny.fastq")
+	//var wg sync.WaitGroup
+	//var lock sync.Mutex
 
+	start := time.Now()
+
+	f, err := os.Open("../quality/internal/assets/big.fastq")
 	if err != nil {
 		log.Printf("Error opening th efile: %s", err)
 	}
 	defer f.Close()
-	r, err := fastq.NewReader(f)
+
+	fmt.Printf("Read the file in %s\n", time.Since(start))
+
+	start = time.Now()
+
+	report := quality.NewReport()
+
+	r := fastq.NewReader(f)
+	ch, err := r.Read()
 	if err != nil {
 		log.Fatal(err)
 	}
-	b := make([]byte, 1024)
-	q := quality.NewQC()
 
-	var id int
-	for {
-		_, err := r.Read(b)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println(err)
-		}
-		q, err = core.ProcessSequence(b, id, q)
-		if err != nil {
-			log.Fatal(err)
-		}
-		id += 1
+	fmt.Printf("Created the reader, and sent all the data to the chanel in %s\n", time.Since(start))
+
+	start = time.Now()
+
+	for input := range ch {
+		report.Update(*input)
 	}
 
-	//fmt.Printf("%#v\n", q)
+	fmt.Printf("Updated the report in %s\n", time.Since(start))
 
-	pq := core.QualityPerPosition(q)
-	//fmt.Printf("%+v\n", pq)
-	/*gc := q.GC()
-	fmt.Println(gc)
+	//start = time.Now()
 
-	js, _ := json.Marshal(pq)
-	os.WriteFile("qualpp.json", js, os.ModePerm)
+	/*js, _ := json.Marshal(report)
 
-	pp := core.PerSeqQuality(q)
-	js, _ = json.Marshal(pp)
-	os.WriteFile("qualps.json", js, os.ModePerm)
+	fmt.Printf("Serialized and printed the data in %s\n", time.Since(start))
+	fmt.Printf("Length of the Quality per Position: %d\n", len(report.QualPerPosition))
+	*/
 
-	//ld := core.SeqLenDistribution(q)
-	//fmt.Printf("Seq Length Distribution: %v", ld)
+	/*hist := quality.NewHistogram(report.GCPerSeq, 0)
 
-	gc := core.PerSeqGC(q)
-	//fmt.Printf("GC content per sequence: %v\n", gc)
-	js, _ = json.Marshal(gc)
-	os.WriteFile("gc.json", js, os.ModePerm)
-
-	fmt.Printf("BASE32 is: %d. BASE64 is %d", BASE32, BASE64) */
-	report := core.Report{}
-	dat := make([]core.Seq, 109)
-
-	for i := 0; i < 109; i++ {
-		l := rand.Intn(109)
-		for j := 0; j < l; j++ {
-			dat[i] = append(dat[i], &core.Base{})
-		}
+	fmt.Println("Histogram:")
+	for _, val := range hist {
+		fmt.Printf("x: %.02f, y: %.02f\n", val.X, val.Y)
 	}
-	report.Make(dat)
-
-	s := "ACCGTCGTTTCGAAAAAAAAANA"
-	count := core.Count(s)
-	for key, val := range count {
-		fmt.Println(string(key), ": ", val)
-	}
-	time.Sleep(5 * time.Second)
-	fmt.Printf("Summary:\n%+v\n", report)
+	js, _ = json.Marshal(hist)
+	os.WriteFile("gc.json", js, os.ModePerm)*/
+	fmt.Printf("Quality:\n%+v\n", report.Quality)
 }

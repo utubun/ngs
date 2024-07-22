@@ -9,6 +9,20 @@ const (
 	BASE = 33
 )
 
+/*func PerSeqQuality(input fastq.Read) []float64 {
+	// initialize point array as result
+	res := make([]float64, len(input.Seq))
+	// iterate over seq and find mean score per sequence
+	for i, val := range input.Seq {
+		y := make([]int, len(val))
+		for j, base := range val {
+			y[j] = *base.Quality
+		}
+		res[i] = Mean(y)
+	}
+	return res
+}*/
+
 /*
 	func ProcessSequence(b []byte, seqID int, input *QC) (*QC, error) {
 		// check the record is valid fastq record
@@ -117,6 +131,22 @@ const (
 		return res
 	}
 */
+
+func (s *Statistics) Update(x float64) {
+	// update statistics
+	// see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+	s.N += 1
+	s.Min = math.Min(x, s.Min)
+	s.Max = math.Max(x, s.Max)
+	delta := x - s.Mean
+	s.Mean += delta / s.N
+	s.m2 = delta * (x - s.Mean)
+	if s.N > 1 {
+		s.Var = s.m2 / (s.N - 1)
+		s.SD = math.Sqrt(s.Var)
+	}
+}
+
 func sum[T int | int32 | int64 | float32 | float64](x []T) float64 {
 	var sum float64
 	for _, val := range x {
@@ -155,22 +185,22 @@ func max[T int | int32 | int64 | float32 | float64](x []T) float64 {
 }
 
 func min[T int | int32 | int64 | float32 | float64](x []T) float64 {
-	var res float64
+	res := float64(x[0])
 	for _, val := range x[1:] {
 		res = math.Min(res, float64(val))
 	}
 	return res
 }
 
-func Summary[T Number](x []T) *Statistics[T] {
+func Summary[T Number](x []T) *Statistics {
 	// waitgroup and lock
 	var wg sync.WaitGroup
 	var lock sync.Mutex
 	// define result
-	res := &Statistics[T]{Data: x}
+	res := &Statistics{}
 	// check if x is empty
 	if len(x) == 0 {
-		return &Statistics[T]{}
+		return &Statistics{}
 	}
 	// calculate length of data
 	wg.Add(1)

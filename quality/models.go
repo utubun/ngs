@@ -158,7 +158,7 @@ type FastqQuality struct {
 	Message    []string    `json:"message"`
 }
 
-func GC(t map[rune]int) float32 {
+/* func GC(t map[rune]int) float32 {
 	var all float32
 	gc := float32(t[71]) + float32(t[67])
 	for _, val := range t {
@@ -166,7 +166,7 @@ func GC(t map[rune]int) float32 {
 	}
 
 	return gc / all * 100
-}
+} */
 
 func Sum(x []int) int {
 	var sum int
