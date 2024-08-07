@@ -20,17 +20,7 @@ func (r Reads) CheckQuality() (FastqQuality, error) {
 		maxLen int
 	)
 
-	/*for _, val := range r.Sequence {
-		if !isDNA(&val) {
-			qcheck.Valid = false
-			break
-		}
-	}*/
-
 	for _, val := range r.QScores {
-		/*if !qcheck.Valid {
-			break
-		}*/
 		for _, el := range val {
 			if el > 40 || el < 0 {
 				qcheck.Valid = false
